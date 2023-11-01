@@ -7,38 +7,24 @@ use App\Http\Controllers\Controller;
 use App\Models\Materi;
 use App\Models\Topik;
 
-//return type View
-use Illuminate\View\View;
-
-//return type redirectResponse
-use Illuminate\Http\RedirectResponse;
+// import materi resource
+use App\Http\Resources\MateriResource;
 
 use Illuminate\Http\Request;
 
-//import Facade "Storage"
-use Illuminate\Support\Facades\Storage;
-
-// sweetalert
-use Alert;
 
 class MateriController extends Controller
 {
-    public function index(): View
+    public function index()
     {
         //get materi
         $materis = Materi::latest()->paginate(5);
         $topik = Topik::all();
-        //render view with posts
-        return view('materi.indexAdmin', compact('materis', 'topik'));
+        
+        return new MateriResource(true,"List Data Materi!", compact('materis', 'topik'));
     }
 
-    public function create(): View
-    {
-        $topik = Topik::all();
-        return view('materi.create', compact('topik'));
-    }
-
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         //validate form
         $this->validate($request, [
@@ -48,49 +34,34 @@ class MateriController extends Controller
             'id_topik' => 'required',
         ]);
 
-        //upload image
-        // $image = $request->file('image');
-        // $image->storeAs('public/posts', $image->hashName());
-
         //create post
-        Materi::create([
+        $materi = Materi::create([
             'judul_materi'  => $request->judul_materi,
             'url_materi'    => $request->url_materi,
             'deskripsi_materi'  => $request->deskripsi_materi,
             'id_topik' => $request->id_topik,
         ]);
 
-        // Pesan berhasil
-        Alert::success(' BERHASIL ', ' Berhasil Menambah Materi! ');
-
-        //kembali ke halaman index
-        return redirect('/materi');
+        //return collection of Materi as a resource
+        return new MateriResource(true,"Data Materi Berhasil Ditambah!", $materi);
     }
 
-    public function show(string $id_materi): View
+    public function show(string $id_materi)
     {
-        //get post by ID
+        //get materi by ID
         $materi = Materi::findOrFail($id_materi);
         $topik = Topik::all();
-        //render view with post
-        return view('materi.show', compact('materi'));
+
+        //mengembalikan detail materi
+        return new MateriResource(true, "Data Materi Ditemukan!", $materi);
     }
 
-    public function edit(string $id_materi): View
+    public function update(Request $request, $id_materi)
     {
-        //get post by ID
-        $materi = Materi::findOrFail($id_materi);
-        $topik = Topik::all();
-        //render view with post
-        return view('materi.edit', compact('materi', 'topik'));
-    }
-
-    public function update(Request $request, $id_materi): RedirectResponse
-    {
-        //get post by ID
+        //get materi by ID
         $materi = Materi::findOrFail($id_materi);
 
-        //update post without image
+        //update materi
         $materi->update([
             'judul_materi'  => $request->judul_materi,
             'url_materi'    => $request->url_materi,
@@ -98,25 +69,17 @@ class MateriController extends Controller
             'id_topik' => $request->id_topik,
         ]);
 
-       // Pesan berhasil
-       Alert::success(' BERHASIL ', ' Berhasil Mengubah Materi! ');
-
-       //kembali ke halaman index
-       return redirect('/materi');
+       return new MateriResource(true, "Data Materi Berhasil Diubah!", $materi);
     }
 
-    public function destroy($id_materi): RedirectResponse
+    public function destroy($id_materi)
     {
-        //get post by ID
+        //get materi by ID
         $materi = Materi::findOrFail($id_materi);
 
-        //delete post
+        //delete materi
         $materi->delete();
 
-        // Pesan berhasil
-        Alert::success(' BERHASIL ', ' Berhasil Menghapus Materi! ');
-
-        //kembali ke halaman index
-        return redirect('/materi');
+        return new MateriResource(true, "Data Materi Berhasil Dihapus!", $materi);
     }
 }

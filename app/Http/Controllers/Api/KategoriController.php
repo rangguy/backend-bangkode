@@ -8,8 +8,7 @@ use App\Models\Kategori;
 use App\Models\Topik;
 use App\Http\Resources\KategoriResource;
 use Illuminate\Support\Facades\Validator;
-use File;
-// use Alert;
+use Illuminate\Support\Facades\Storage;
 
 class KategoriController extends Controller
 {
@@ -66,7 +65,7 @@ class KategoriController extends Controller
     {
         $kategori = Kategori::find($id_kategori);
         $topik = Topik::all();
-        // return view('topik.index', compact('kategori', 'topik'));
+
         //return single kategori as a resource
         return new KategoriResource(true, 'Data Kategori Ditemukan!',compact('kategori', 'topik'));
     }
@@ -78,34 +77,39 @@ class KategoriController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id_kategori)
+    public function update(Request $request, Kategori $kategori)
     {
-        $validated = $request->validate([
+        // define validation rules
+        $validator = Validator::make($request->all(), [
             'nama_kategori' => 'required',
-            'foto' => 'mimes:jpg,jpeg,png',
         ]);
 
-        $kategori = Kategori::find($id_kategori);
-
-        $kategori->nama_kategori = $request['nama_kategori'];
-
-        if ($request->has('foto')) {
-            $path = 'image/';
-            File::delete($path . $kategori->foto);
-
-            // ubah nama file menjadi unique
-            $newNameFoto = time() . '.' . $request->foto->extension();
-
-            // pindahkan file ke folder public di dalam folder image
-            $request->foto->move(public_path('image'), $newNameFoto);
-
-            $kategori->foto = $newNameFoto;
+        // check if validation fails
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
 
-        $kategori->save();
+        if ($request->hasFile('foto')) {
+            //upload image
+            $foto = $request->file('foto');
+            
+            // mengubah nama foto
+            $newNameFoto = time() . '.' . $request->foto->extension();
+            $foto->storeAs('public/kategori', $newNameFoto);
+            
+            //delete old foto
+            Storage::delete('public/kategori/'.$kategori->foto);
 
-        // Pesan berhasil
-        // Alert::success(' BERHASIL ', ' Berhasil Mengubah Kategori! ');
+            //update kategori with new foto
+            $kategori->update([
+                'nama_kategori' => $request->nama_kategori,
+                'foto'          => $newNameFoto,
+            ]);
+        } else {
+            $kategori->update([
+                'nama_kategori' => $request->nama_kategori
+            ]);
+        }
 
         //return response
         return new KategoriResource(true, 'Data Kategori Berhasil Diubah!', $kategori);
@@ -120,8 +124,8 @@ class KategoriController extends Controller
     public function destroy($id_kategori)
     {
         $kategori = Kategori::find($id_kategori);
-        $path = 'image/';
-        File::delete($path . $kategori->foto);
+        $path = 'public/kategori/';
+        Storage::delete($path . $kategori->foto);
 
         // delete kategori
         $kategori->delete();

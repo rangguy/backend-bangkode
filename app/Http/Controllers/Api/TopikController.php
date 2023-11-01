@@ -1,18 +1,17 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 
 use File;
-use Alert;
 use App\Http\Resources\TopikResource;
 use App\Models\Kategori;
 use App\Models\Topik;
 use App\Models\Materi;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class TopikController extends Controller
 {
@@ -22,22 +21,29 @@ class TopikController extends Controller
         $topik = Topik::first()->paginate(5);
         $kategori = Kategori::all();
 
-        return new TopikResource(true, "List Data Topik", compact('topik', 'kategori'));
+        return new TopikResource(true, "List Data Topik", $topik);
     }
 
 
     public function store(Request $request)
     {
         //Validasi data
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'nama_topik' => 'required',
             'logo_topik' => 'required|mimes:jpeg,jpg,png',
             'id_kategori' => 'required'
         ]);
-        //upload image
-        $newNameImage = time() . '.' . $request->logo_topik->extension();
 
-        $request->logo_topik->move(public_path('image'), $newNameImage);
+        //check if validation fails
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+        
+        //upload image
+        $image = $request->file('logo_topik');
+        $newNameImage = time() . '.' . $request->logo_topik->extension();
+        $image->storeAs('public/topik', $newNameImage);
+
         //Memasukan data
         $topik = new Topik;
 
@@ -46,8 +52,6 @@ class TopikController extends Controller
         $topik->id_kategori = $request['id_kategori'];
 
         $topik->save();
-        // Pesan berhasil
-        Alert::success(' BERHASIL ', ' Berhasil Menambah Topik! ');
 
         //return collection of Topik as a resource
         return new TopikResource(true, "List Data Topik", $topik);
@@ -60,33 +64,44 @@ class TopikController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id_topik)
+    public function update(Request $request, Topik $topik)
     {
-        $validated = $request->validate([
+        // define validation rules
+        $validator = Validator::make($request->all(), [
             'nama_topik' => 'required',
             'logo_topik' => 'mimes:jpg,jpeg,png',
             'id_kategori' => 'required'
         ]);
 
-        $topik = Topik::find($id_topik);
-
-        $topik->nama_topik = $request['nama_topik'];
-        $topik->id_kategori = $request['id_kategori'];
-
-        if ($request->has('logo_topik')) {
-            $path = 'image/';
-            File::delete($path . $topik->logo_topik);
-
-            // ubah nama file menjadi unique
-            $newNameLogo = time() . '.' . $request->logo_topik->extension();
-
-            // pindahkan file ke folder public di dalam folder image
-            $request->logo_topik->move(public_path('image'), $newNameLogo);
-
-            $topik->logo_topik = $newNameLogo;
+        // check if validation fails
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
-        // save ke database
-        $topik->save();
+
+        if ($request->hasFile('logo_topik')) {
+            
+            //upload image
+            $logo = $request->file('logo_topik');
+            
+            // mengubah nama logo
+            $newNameLogo = time() . '.' . $request->logo_topik->extension();
+            $logo->storeAs('public/topik', $newNameLogo);
+            
+            //delete old logo_topik
+            Storage::delete('public/topik/' . $topik->logo_topik);
+
+            //update kategori with new logo
+            $topik->update([
+                'nama_topik'    => $request->nama_topik,
+                'logo_topik'    => $newNameLogo,
+                'id_kategori'   => $request->id_kategori
+            ]);
+        } else {
+            $topik->update([
+                'nama_topik'    => $request->nama_topik,
+                'id_kategori'   => $request->id_kategori
+            ]);
+        }
 
         // Update data topik
         return new TopikResource(true, "Data Topik Berhasil Diubah!", $topik);
@@ -101,8 +116,10 @@ class TopikController extends Controller
     public function destroy($id_topik)
     {
         $topik = Topik::find($id_topik);
-        $path = 'image/';
-        File::delete($path . $topik->logo_topik);
+        $path = 'public/topik';
+        Storage::delete($path . $topik->logo_topik);
+
+        // delete kategori
         $topik->delete();
 
         // delete data topik
