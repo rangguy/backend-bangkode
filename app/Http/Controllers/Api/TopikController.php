@@ -130,7 +130,7 @@ class TopikController extends Controller
     {
         $kategori = Kategori::find($id_kategori);
         $topik = Topik::find($id_topik);
-        $materi = Materi::all();
+        $materi = Materi::where('id_topik', $id_topik)->get();
 
         // mengembalikan list Materi berdasarkan topiknya
         return new TopikResource(true, "Data Materi Berhasil Ditemukan", compact('kategori', 'topik', 'materi'));

@@ -10,7 +10,7 @@ class KategoriResource extends JsonResource
     //define properti
     public $status;
     public $message;
-    
+
     /**
      * __construct
      *
@@ -34,6 +34,11 @@ class KategoriResource extends JsonResource
      */
     public function toArray($request)
     {
+        // return [
+        //     'id_kategori' => $this->id_kategori,
+        //     "nama_kategori" => $this->nama_kategori,
+        //     "foto" => $this->foto,
+        // ];
         return [
             'success'   => $this->status,
             'message'   => $this->message,
