@@ -15,11 +15,17 @@ class Materi extends Model
         'judul_materi',
         'url_materi',
         'deskripsi_materi',
-        'id_topik'
+        'id_topik',
+        'id_kategori'
     ];
 
     public function topik(): BelongsTo
     {
         return $this->belongsTo(Topik::class, 'id_topik');
+    }
+
+    public function kategori(): BelongsTo
+    {
+        return $this->belongsTo(Kategori::class, 'id_kategori');
     }
 }

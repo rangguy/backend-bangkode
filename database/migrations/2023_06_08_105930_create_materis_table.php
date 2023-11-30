@@ -17,7 +17,9 @@ return new class extends Migration
             $table->string('url_materi');
             $table->string('deskripsi_materi');
             $table->unsignedBigInteger('id_topik');
+            $table->unsignedBigInteger('id_kategori');
             $table->foreign('id_topik')->references('id_topik')->on('topik');
+            $table->foreign('id_kategori')->references('id_kategori')->on('kategori');
             $table->timestamps();
         });
     }

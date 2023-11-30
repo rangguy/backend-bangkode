@@ -32,6 +32,7 @@ class MateriController extends Controller
             'url_materi'     => 'required',
             'deskripsi_materi'   => 'required',
             'id_topik' => 'required',
+            'id_kategori' => 'required',
         ]);
 
         //create post
@@ -40,6 +41,7 @@ class MateriController extends Controller
             'url_materi'    => $request->url_materi,
             'deskripsi_materi'  => $request->deskripsi_materi,
             'id_topik' => $request->id_topik,
+            'id_kategori' => $request->id_kategori,
         ]);
 
         //return collection of Materi as a resource
@@ -67,6 +69,7 @@ class MateriController extends Controller
             'url_materi'    => $request->url_materi,
             'deskripsi_materi'  => $request->deskripsi_materi,
             'id_topik' => $request->id_topik,
+            'id_kategori' => $request->id_kategori,
         ]);
 
        return new MateriResource(true, "Data Materi Berhasil Diubah!", $materi);

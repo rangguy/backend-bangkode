@@ -65,7 +65,7 @@ class KategoriController extends Controller
     public function showTopik($id_kategori)
     {
         $kategori = Kategori::find($id_kategori);
-        $topik = Topik::where('id_kategori', $id_kategori)->get();
+        $topik = Topik::where('id_kategori',$id_kategori)->get();
 
         //return single kategori as a resource
         return new KategoriResource(true, 'Data Kategori Ditemukan!',compact('kategori', 'topik'));

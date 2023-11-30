@@ -20,4 +20,9 @@ class Kategori extends Model
     {
         return $this->hasMany(Topik::class, 'id_kategori');
     }
+
+    public function materi(): HasMany
+    {
+        return $this->hasMany(Materi::class, 'id_kategori');
+    }
 }

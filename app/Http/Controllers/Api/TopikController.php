@@ -38,7 +38,7 @@ class TopikController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-        
+
         //upload image
         $image = $request->file('logo_topik');
         $newNameImage = time() . '.' . $request->logo_topik->extension();
@@ -79,14 +79,14 @@ class TopikController extends Controller
         }
 
         if ($request->hasFile('logo_topik')) {
-            
+
             //upload image
             $logo = $request->file('logo_topik');
-            
+
             // mengubah nama logo
             $newNameLogo = time() . '.' . $request->logo_topik->extension();
             $logo->storeAs('public/topik', $newNameLogo);
-            
+
             //delete old logo_topik
             Storage::delete('public/topik/' . $topik->logo_topik);
 
@@ -128,11 +128,16 @@ class TopikController extends Controller
 
     public function showMateri($id_kategori, $id_topik)
     {
-        $kategori = Kategori::find($id_kategori);
-        $topik = Topik::find($id_topik);
-        $materi = Materi::where('id_topik', $id_topik)->get();
-
-        // mengembalikan list Materi berdasarkan topiknya
-        return new TopikResource(true, "Data Materi Berhasil Ditemukan", compact('kategori', 'topik', 'materi'));
+        $topik = Topik::find($id_kategori);
+        if ($topik) {
+            $materi = Materi::where('id_topik', $topik->id_topik)->get();
+            if ($materi->isNotEmpty()) {
+                return new TopikResource(true, "Data Materi Berhasil Ditemukan", compact('topik', 'materi'));
+            } else {
+                return new TopikResource(false, "Data Materi Tidak Ditemukan", compact('materi'));
+            }
+        } else {
+            return new TopikResource(false, "Topik Tidak Ditemukan", compact('topik'));
+        }
     }
 }
