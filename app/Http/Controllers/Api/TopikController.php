@@ -18,8 +18,7 @@ class TopikController extends Controller
     public function index()
     {
         // get data topik
-        $topik = Topik::first()->paginate(5);
-        $kategori = Kategori::all();
+        $topik = Topik::all();
 
         return new TopikResource(true, "List Data Topik", $topik);
     }
