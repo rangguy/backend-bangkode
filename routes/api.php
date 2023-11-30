@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\KategoriController;
 use App\Http\Controllers\Api\TopikController;
 use App\Http\Controllers\Api\MateriController;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,3 +51,9 @@ Route::resource('/topik', TopikController::class);
 
 //CRUD Materi
 Route::resource('/materi', MateriController::class);
+
+//Register
+Route::post('/auth/register', [AuthController::class, 'register']);
+
+//Login;
+Route::post('/auth/login', [AuthController::class, 'login']);
