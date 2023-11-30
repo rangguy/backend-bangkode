@@ -128,16 +128,17 @@ class TopikController extends Controller
 
     public function showMateri($id_kategori, $id_topik)
     {
-        $topik = Topik::find($id_kategori);
-        if ($topik) {
-            $materi = Materi::where('id_topik', $topik->id_topik)->get();
+        $topik = Topik::find($id_topik); // Menggunakan $id_topik sebagai parameter untuk mencari Topik berdasarkan ID
+
+        if ($topik && $topik->id_kategori == $id_kategori) {
+            $materi = Materi::where('id_topik', $id_topik)->get(); // Mengambil data Materi berdasarkan $id_topik
             if ($materi->isNotEmpty()) {
-                return new TopikResource(true, "Data Materi Berhasil Ditemukan", compact('topik', 'materi'));
+                return new TopikResource(true, "Data Materi Berhasil Ditemukan", $materi);
             } else {
-                return new TopikResource(false, "Data Materi Tidak Ditemukan", compact('materi'));
+                return new TopikResource(false, "Data Materi Tidak Ditemukan", "data kosong!");
             }
         } else {
-            return new TopikResource(false, "Topik Tidak Ditemukan", compact('topik'));
+            return new TopikResource(false, "Materi tidak ditemukan untuk id topik atau id Kategori yang diberikan", null);
         }
     }
 }

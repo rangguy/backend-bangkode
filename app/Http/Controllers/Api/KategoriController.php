@@ -68,7 +68,7 @@ class KategoriController extends Controller
         $topik = Topik::where('id_kategori',$id_kategori)->get();
 
         //return single kategori as a resource
-        return new KategoriResource(true, 'Data Topik Ditemukan!',compact('kategori', 'topik'));
+        return new KategoriResource(true, 'Data Topik Ditemukan!', $topik);
     }
 
     /**
